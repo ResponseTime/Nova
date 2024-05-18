@@ -18,7 +18,7 @@ func TestInternalCreateFolder(t *testing.T) {
 		{"CLI/Test_folder", "", errors.New("Enter Folder Name")},
 	}
 	for _, tt := range tests {
-		testname := fmt.Sprintf("Creating folder %s at path %s", tt.folder_name, tt.path)
+		testname := fmt.Sprintf("Creating folder %s at path %s ", tt.folder_name, tt.path)
 		t.Run(testname, func(t *testing.T) {
 			ans := InternalCreateFolder(tt.path, tt.folder_name)
 			if ans != tt.err {
@@ -33,12 +33,11 @@ type outFile struct {
 	Err  error
 }
 
-func createTemp(path, name string) *outFile {
-	file, err := os.CreateTemp(path, name)
-	return &outFile{File: file, Err: err}
-}
-
 func TestInternalCreateFile(t *testing.T) {
+	createTemp := func(path, name string) *outFile {
+		file, err := os.CreateTemp(path, name)
+		return &outFile{File: file, Err: err}
+	}
 	var tests = []struct {
 		path, file_name string
 		outFile         *outFile
@@ -48,7 +47,7 @@ func TestInternalCreateFile(t *testing.T) {
 		{"", "", createTemp("", "")},
 	}
 	for _, tt := range tests {
-		testname := fmt.Sprintf("Creating file %s at path %s", tt.file_name, tt.path)
+		testname := fmt.Sprintf("Creating file %s at path %s ", tt.file_name, tt.path)
 		t.Run(testname, func(t *testing.T) {
 			file, err := InternalCreateFile(tt.path, tt.file_name)
 			if err != nil {
