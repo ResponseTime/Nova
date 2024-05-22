@@ -1,0 +1,52 @@
+{
+  "dest": "root",
+  "isfolder": true,
+  "children": [
+    {
+      "dest": "package.json",
+      "isfolder": false,
+      "children": []
+    },
+    {
+      "dest": "index.html",
+      "isfolder": false,
+      "children": []
+    },
+    {
+      "dest": "README.md",
+      "isfolder": false,
+      "children": []
+    },
+    {
+      "dest": "src",
+      "isfolder": true,
+      "children": [
+        {
+          "dest": "App.css",
+          "isfolder": false,
+          "children": []
+        },
+        {
+          "dest": "index.css",
+          "isfolder": false,
+          "children": []
+        },
+        {
+          "dest": "App.jsx",
+          "isfolder": false,
+          "children": []
+        },
+        {
+          "dest": "main.jsx",
+          "isfolder": false,
+          "children": []
+        }
+      ]
+    },
+    {
+      "dest": "public",
+      "isfolder": true,
+      "children": []
+    }
+  ]
+}

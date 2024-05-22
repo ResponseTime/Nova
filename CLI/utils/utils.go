@@ -5,15 +5,17 @@ import (
 	"path/filepath"
 )
 
-func InternalCreateFolder(path, name string) error {
-	if path == "" {
-		return os.Mkdir(name, 0755)
+func InternalCreateFolder(path, name string) string {
+	err := os.Mkdir(filepath.Join(path, name), 0755)
+	if err != nil {
+		panic(err)
 	}
-	return os.Mkdir(filepath.Join(path, name), 0755)
+	return filepath.Join(path, name)
 }
-func InternalCreateFile(path, name string) (*os.File, error) {
-	if path == "" {
-		return os.Create(name)
+func InternalCreateFile(path, name string) string {
+	_, err := os.Create(filepath.Join(path, name))
+	if err != nil {
+		panic(err)
 	}
-	return os.Create(filepath.Join(path, "/", name))
+	return filepath.Join(path, name)
 }

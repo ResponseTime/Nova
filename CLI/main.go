@@ -1,102 +1,57 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
 
-	tea "github.com/charmbracelet/bubbletea"
+	"github.com/responsetime/Nova/filehandle"
 )
 
-type model struct {
-	choices  []string
-	cursor   int
-	selected map[int]struct{}
-}
-
-func initialModel() model {
-	return model{
-		choices:  []string{"Buy carrots", "Buy celery", "Buy kohlrabi"},
-		selected: make(map[int]struct{}),
+func clearScreen() {
+	var cmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("cmd", "/c", "cls")
+	} else {
+		cmd = exec.Command("clear")
+	}
+	cmd.Stdout = os.Stdout
+	if err := cmd.Run(); err != nil {
+		fmt.Println("Error clearing screen:", err)
 	}
 }
-func (m model) Init() tea.Cmd {
-	return nil
-}
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
 
-	// Is it a key press?
-	case tea.KeyMsg:
-
-		// Cool, what was the actual key pressed?
-		switch msg.String() {
-
-		// These keys should exit the program.
-		case "ctrl+c", "q":
-			return m, tea.Quit
-
-		// The "up" and "k" keys move the cursor up
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-
-		// The "down" and "j" keys move the cursor down
-		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
-				m.cursor++
-			}
-
-		// The "enter" key and the spacebar (a literal space) toggle
-		// the selected state for the item that the cursor is pointing at.
-		case "enter", " ":
-			_, ok := m.selected[m.cursor]
-			if ok {
-				delete(m.selected, m.cursor)
-			} else {
-				m.selected[m.cursor] = struct{}{}
-			}
-		}
-	}
-
-	// Return the updated model to the Bubble Tea runtime for processing.
-	// Note that we're not returning a command.
-	return m, nil
-}
-func (m model) View() string {
-	// The header
-	s := "What should we buy at the market?\n\n"
-
-	// Iterate over our choices
-	for i, choice := range m.choices {
-
-		// Is the cursor pointing at this choice?
-		cursor := " " // no cursor
-		if m.cursor == i {
-			cursor = ">" // cursor!
-		}
-
-		// Is this choice selected?
-		checked := " " // not selected
-		if _, ok := m.selected[i]; ok {
-			checked = "x" // selected!
-		}
-
-		// Render the row
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
-	}
-
-	// The footer
-	s += "\nPress q to quit.\n"
-
-	// Send the UI for rendering
-	return s
-}
 func main() {
-
-	p := tea.NewProgram(initialModel())
-	if _, err := p.Run(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
-		os.Exit(1)
+	var templt string
+	var project_name string
+	var language string
+	templates := []string{"React", "Vanilla", "Blank React"}
+	flag.StringVar(&templt, "template", "vanilla", "Enter the template name")
+	flag.StringVar(&project_name, "project-name", "Default", "Enter the project name")
+	flag.StringVar(&language, "language", "Javascript", "Enter the language to use")
+	flag.Parse()
+	if len(os.Args) < 2 {
+		fmt.Println("Enter the project name")
+		fmt.Scan(&project_name)
+		clearScreen()
+		fmt.Println("Enter the template")
+		for _, i := range templates {
+			fmt.Println(i)
+		}
+		fmt.Scan(&templt)
+		clearScreen()
+		fmt.Println("Enter Which Language to use")
+		fmt.Println("Javascript")
+		fmt.Println("Typescript")
+		fmt.Scan(&language)
+		clearScreen()
 	}
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting current directory:", err)
+		return
+	}
+	filehandle.CREATE_PROJECT(dir, project_name, templt, language)
 }
