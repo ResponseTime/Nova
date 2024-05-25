@@ -17,11 +17,43 @@ type Structure struct {
 var son []byte
 var eve Structure
 
+// files to populate
+
+//go:embed package.json
+var packagejson []byte
+
+//go:embed App.css
+var AppCss []byte
+
+//go:embed App.jsx
+var AppJSX []byte
+
+//go:embed index.css
+var IndexCss []byte
+
+//go:embed index.html
+var IndexHTML []byte
+
+//go:embed main.jsx
+var MainJSX []byte
+
+var map_file_to_content_file = map[string][]byte{
+	"package.json": packagejson,
+	"index.html":   IndexHTML,
+	"App.css":      AppCss,
+	"App.jsx":      AppJSX,
+	"index.css":    IndexCss,
+	"main.jsx":     MainJSX,
+}
+
 func create_dir_structure(current_path, project_name string, eve *Structure) {
 	if eve.IsFolder {
 		os.Mkdir(filepath.Join(current_path, eve.Dest), 0755)
 	} else {
 		os.Create(filepath.Join(current_path, eve.Dest))
+		go func(path string, name string) {
+			os.WriteFile(filepath.Join(path, name), map_file_to_content_file[name], 0777)
+		}(current_path, eve.Dest)
 	}
 	current_path = filepath.Join(current_path, project_name)
 	for _, itr := range eve.Children {

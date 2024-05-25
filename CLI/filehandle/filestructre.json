@@ -40,6 +40,11 @@
           "dest": "main.jsx",
           "isfolder": false,
           "children": []
+        },
+        {
+          "dest": "assets",
+          "isfolder": true,
+          "children": []
         }
       ]
     },

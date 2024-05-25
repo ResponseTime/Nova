@@ -54,4 +54,7 @@ func main() {
 		return
 	}
 	filehandle.CREATE_PROJECT(dir, project_name, templt, language)
+	fmt.Printf("%s\n", "cd "+project_name)
+	fmt.Printf("%s\n", "npm install")
+	fmt.Printf("%s\n", "Nova run")
 }

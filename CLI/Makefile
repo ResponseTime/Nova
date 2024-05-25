@@ -9,7 +9,7 @@ build:
 	@go build -o $(BUILD)/app $(MAIN_PACKAGE)
 
 .PHONY: run
-run: build
+run:
 	@echo "Running the project..."
 	@./$(BUILD)/app
 
