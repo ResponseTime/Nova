@@ -26,7 +26,7 @@ func initialModel() menu {
 	ti.Placeholder = "Default"
 	ti.Focus()
 	ti.CharLimit = 156
-	ti.Width = 30
+
 
 	m := menu{
 		textInput: ti,
