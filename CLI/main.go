@@ -22,7 +22,7 @@ type menu struct {
 
 func initialModel() menu {
 	ti := textinput.New()
-	ti.Placeholder = "Default"
+	ti.Placeholder = "Nova-Project"
 	ti.Focus()
 	ti.CharLimit = 156
 	ti.Width = 30
@@ -144,7 +144,7 @@ func main() {
 	}
 
 	if projectName == "" {
-		projectName = "Default"
+		projectName = "Nova-Project"
 	}
 
 	filehandle.CREATE_PROJECT(dir, projectName, template, language)
