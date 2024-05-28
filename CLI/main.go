@@ -12,13 +12,12 @@ import (
 )
 
 type menu struct {
-	textInput textinput.Model
-	templates []string
-	languages []string
-	index     int
+	textInput   textinput.Model
+	templates   []string
+	languages   []string
+	index       int
 	screenCount int
-	err       error
-
+	err         error
 }
 
 func initialModel() menu {
@@ -26,15 +25,15 @@ func initialModel() menu {
 	ti.Placeholder = "Default"
 	ti.Focus()
 	ti.CharLimit = 156
-
+	ti.Width = 30
 
 	m := menu{
-		textInput: ti,
-		templates: []string{"React", "Vanilla", "Blank React"},
-		languages: []string{"Javascript", "Typescript"},
-		index:     0,
+		textInput:   ti,
+		templates:   []string{"React", "Vanilla", "Blank React"},
+		languages:   []string{"Javascript", "Typescript"},
+		index:       0,
 		screenCount: 0,
-		err:       nil,
+		err:         nil,
 	}
 	return m
 }
