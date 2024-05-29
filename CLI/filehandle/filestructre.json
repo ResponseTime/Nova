@@ -22,6 +22,11 @@
       "isfolder": true,
       "children": [
         {
+          "dest": "assets",
+          "isfolder": true,
+          "children": []
+        },
+        {
           "dest": "App.css",
           "isfolder": false,
           "children": []
@@ -39,11 +44,6 @@
         {
           "dest": "main.jsx",
           "isfolder": false,
-          "children": []
-        },
-        {
-          "dest": "assets",
-          "isfolder": true,
           "children": []
         }
       ]
