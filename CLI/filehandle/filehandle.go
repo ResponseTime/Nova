@@ -3,7 +3,6 @@ package filehandle
 import (
 	"bytes"
 	"embed"
-	_ "embed"
 	"encoding/json"
 	"log"
 	"os"
