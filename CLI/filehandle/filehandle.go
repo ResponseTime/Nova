@@ -1,10 +1,14 @@
 package filehandle
 
 import (
+	"bytes"
 	_ "embed"
 	"encoding/json"
+	"log"
 	"os"
 	"path/filepath"
+	"strings"
+	"text/template"
 )
 
 type Structure struct {
@@ -19,7 +23,7 @@ var eve Structure
 
 // files to populate
 
-//go:embed package.json
+//go:embed package.json.template
 var packagejson []byte
 
 //go:embed App.css
@@ -46,24 +50,36 @@ var map_file_to_content_file = map[string][]byte{
 	"main.jsx":     MainJSX,
 }
 
-func create_dir_structure(current_path, project_name string, eve *Structure) {
+func create_dir_structure(current_path, dest string, eve *Structure, project_name string) {
 	if eve.IsFolder {
-		os.Mkdir(filepath.Join(current_path, eve.Dest), 0755)
+		os.Mkdir(filepath.Join(current_path, eve.Dest), 0777)
 	} else {
 		os.Create(filepath.Join(current_path, eve.Dest))
 		go func(path string, name string) {
+			if name == "package.json" {
+				tmpl := template.Must(template.New("json").Parse(string(packagejson)))
+				var output bytes.Buffer
+				if err := tmpl.Execute(&output, strings.ToLower(project_name)); err != nil {
+					log.Fatalf("Error executing template: %v", err)
+				}
+				if err := os.WriteFile(filepath.Join(path, name), output.Bytes(), 0777); err != nil {
+					log.Fatalf("Error writing output file: %v", err)
+				}
+				return
+			}
 			os.WriteFile(filepath.Join(path, name), map_file_to_content_file[name], 0777)
 		}(current_path, eve.Dest)
 	}
-	current_path = filepath.Join(current_path, project_name)
+	current_path = filepath.Join(current_path, dest)
 	for _, itr := range eve.Children {
-		create_dir_structure(current_path, itr.Dest, &itr)
+		create_dir_structure(current_path, itr.Dest, &itr, project_name)
 	}
 }
 func CREATE_PROJECT(current_path, project_name, template, language string) {
 	json.Unmarshal(son, &eve)
 	eve.Dest = project_name
-	create_dir_structure(current_path, project_name, &eve)
+	create_dir_structure(current_path, project_name, &eve, project_name)
+
 	// path_folder_root := utils.InternalCreateFolder(current_path, project_name)
 	// public_folder := utils.InternalCreateFolder(path_folder_root, "public")
 	// src_folder := utils.InternalCreateFolder(path_folder_root, "src")
