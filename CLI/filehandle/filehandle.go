@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"text/template"
 )
 
@@ -26,6 +27,7 @@ var eve Structure
 
 //go:embed reacttemplate/*
 var react_template embed.FS
+var wg sync.WaitGroup
 
 func get_bytes_content(r embed.FS, name string) []byte {
 	k, _ := r.ReadFile(name)
@@ -45,8 +47,10 @@ func create_dir_structure(current_path, dest string, eve *Structure, project_nam
 	if eve.IsFolder {
 		os.Mkdir(filepath.Join(current_path, eve.Dest), 0755)
 	} else {
+		wg.Add(1)
 		os.Create(filepath.Join(current_path, eve.Dest))
 		go func(path string, name string) {
+			defer wg.Done()
 			if name == "package.json" {
 				tmpl := template.Must(template.New("json").Parse(string(map_file_to_content_file[name])))
 				var output bytes.Buffer
@@ -66,11 +70,12 @@ func create_dir_structure(current_path, dest string, eve *Structure, project_nam
 		create_dir_structure(current_path, itr.Dest, &itr, project_name)
 	}
 }
+
 func CREATE_PROJECT(current_path, project_name, template, language string) {
 	json.Unmarshal(son, &eve)
 	eve.Dest = project_name
 	create_dir_structure(current_path, project_name, &eve, project_name)
-
+	wg.Wait()
 	// path_folder_root := utils.InternalCreateFolder(current_path, project_name)
 	// public_folder := utils.InternalCreateFolder(path_folder_root, "public")
 	// src_folder := utils.InternalCreateFolder(path_folder_root, "src")
@@ -82,5 +87,4 @@ func CREATE_PROJECT(current_path, project_name, template, language string) {
 	// appJSX := utils.InternalCreateFile(src_folder, "App.jsx")
 	// mainJSX := utils.InternalCreateFile(src_folder, "main.jsx")
 	// fmt.Println(public_folder, package_json, index_html, readme, appCss, indexCss, appJSX, mainJSX)
-
 }
