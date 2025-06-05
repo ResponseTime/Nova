@@ -2,18 +2,23 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
+  entry: './Nova-Project/src/main.jsx',
   output: {
     path: path.join(__dirname, "/dist"), // the bundle output path
     filename: "bundle.js", // the name of the bundle
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "src/index.html", // to import index.html file inside index.js
+      template: "./Nova-Project/index.html", // to import index.html file inside index.js
     }),
   ],
   devServer: {
-    port: 3030, // you can change the port
-  },
+    static: {
+      directory: path.join(__dirname, 'dist'),
+    },
+    port: 3030,
+    open: true,
+  }, mode: "development",
   module: {
     rules: [
       {
@@ -25,7 +30,7 @@ module.exports = {
       },
       {
         test: /\.(sa|sc|c)ss$/, // styles files
-        use: ["style-loader", "css-loader", "sass-loader"],
+        use: ["style-loader", "css-loader"],
       },
       {
         test: /\.(png|woff|woff2|eot|ttf|svg)$/, // to import images and fonts
@@ -33,5 +38,8 @@ module.exports = {
         options: { limit: false },
       },
     ],
+  },
+  resolve: {
+    extensions: ['.js', '.jsx'],
   },
 };
