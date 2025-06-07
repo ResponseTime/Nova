@@ -1,15 +1,73 @@
 package main
 
 import (
+	"bytes"
+	"embed"
+	"flag"
 	"fmt"
+	"log"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/responsetime/Nova/filehandle"
 )
+
+//go:embed webpack-build/*
+var webpack embed.FS
+
+func webpack_file(filename string, r *embed.FS) []byte {
+	bytes, _ := r.ReadFile(filename)
+	return bytes
+}
+
+func run_webpack_config(projectName string) {
+	webpack_config := template.Must(
+		template.New("webpack").
+			Parse(string(webpack_file("webpack-build/webpack.config.js.template", &webpack))),
+	)
+	var webpackOutput bytes.Buffer
+	dir, _ := os.Getwd()
+	if err := webpack_config.Execute(&webpackOutput, struct {
+		Name    string
+		Context string
+	}{
+		Name:    projectName,
+		Context: dir,
+	}); err != nil {
+		log.Fatalf("Error executing webpack config template: %v", err)
+	}
+	package_json := webpack_file("webpack-build/package.json", &webpack)
+	babelrc := webpack_file("webpack-build/babel.config.js", &webpack)
+	webpackDir := filepath.Join(os.TempDir(), "webpack")
+	os.MkdirAll(webpackDir, os.ModePerm)
+	name_to_file_map := map[string][]byte{
+		"babel.config.js":   babelrc,
+		"webpack.config.js": webpackOutput.Bytes(),
+		"package.json":      package_json,
+	}
+	for file, file_content := range name_to_file_map {
+		os.WriteFile(filepath.Join(webpackDir, file), file_content, os.ModePerm)
+	}
+	fmt.Println(os.TempDir())
+	cmd := exec.Command("bash", "-c", "npm i && npx webpack serve")
+	cmd.Dir = filepath.Join(os.TempDir(), "webpack")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		log.Fatalf("Error running command: %v", err)
+	}
+
+	if err := cmd.Run(); err != nil {
+		log.Fatalf("Error running webpack dev server: %v", err)
+	}
+}
 
 type menu struct {
 	textInput   textinput.Model
@@ -73,7 +131,7 @@ func (m menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				projectName = m.textInput.Value()
 				m.screenCount++
 			case 1:
-				template = m.templates[m.index]
+				project_template = m.templates[m.index]
 				m.screenCount++
 			case 2:
 				language = m.languages[m.index]
@@ -97,10 +155,13 @@ var headerStyle = lipgloss.NewStyle().
 	Bold(true)
 
 func (m menu) View() string {
-
 	if m.screenCount == 0 {
-		return lipgloss.JoinVertical(lipgloss.Left, headerStyle.Render("Enter a project name\n"), m.textInput.View(), helpMenuStyle.Render("\nEnter/space to confirm or Ctrl+C to exit."))
-
+		return lipgloss.JoinVertical(
+			lipgloss.Left,
+			headerStyle.Render("Enter a project name\n"),
+			m.textInput.View(),
+			helpMenuStyle.Render("\nEnter/space to confirm or Ctrl+C to exit."),
+		)
 	} else if m.screenCount == 1 {
 		var options []string
 		for i, o := range m.templates {
@@ -126,30 +187,38 @@ func (m menu) View() string {
 	return "nigasoda"
 }
 
-var projectName string
-var template string
-var language string
+var (
+	projectName      string
+	project_template string
+	language         string
+)
 
 func main() {
-	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
-	if _, err := p.Run(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
-		os.Exit(1)
-	}
+	run := flag.Bool("run", false, "builds and runs the dev server")
+	flag.Parse()
 
-	dir, err := os.Getwd()
-	if err != nil {
-		fmt.Println("Error getting current directory:", err)
+	if *run {
+		run_webpack_config("Nova-Project")
 		return
+	} else {
+		p := tea.NewProgram(initialModel(), tea.WithAltScreen())
+		if _, err := p.Run(); err != nil {
+			fmt.Printf("Alas, there's been an error: %v", err)
+			os.Exit(1)
+		}
+
+		dir, err := os.Getwd()
+		if err != nil {
+			fmt.Println("Error getting current directory:", err)
+			return
+		}
+
+		if projectName == "" {
+			projectName = "Nova-Project"
+		}
+		filehandle.CREATE_PROJECT(dir, projectName, project_template, language)
+		fmt.Printf("%s\n", "cd "+projectName)
+		fmt.Printf("%s\n", "npm install")
+		fmt.Printf("%s\n", "Nova run")
 	}
-
-	if projectName == "" {
-		projectName = "Nova-Project"
-	}
-
-	filehandle.CREATE_PROJECT(dir, projectName, template, language)
-	fmt.Printf("%s\n", "cd "+projectName)
-	fmt.Printf("%s\n", "npm install")
-	fmt.Printf("%s\n", "Nova run")
-
 }

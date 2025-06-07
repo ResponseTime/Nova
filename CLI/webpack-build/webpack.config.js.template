@@ -2,14 +2,15 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
-  entry: './react-project/src/main.jsx',
+  context: "{{.Context}}",
+  entry: './src/main.jsx',
   output: {
     path: path.join(__dirname, "/dist"),
     filename: "bundle.js",
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./react-project/index.html",
+      template: "./index.html",
     }),
   ],
   devServer: {
